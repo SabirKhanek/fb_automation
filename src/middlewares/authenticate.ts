@@ -7,16 +7,20 @@ export async function authenticate(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization;
-  if (!token) return res.apiError("Unauthorized: no token provided", 401);
-  const authService = new AuthService();
-  const payload = authService.validateToken(token);
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.apiError("Unauthorized: no token provided", 401);
+    const authService = new AuthService();
+    const payload = authService.validateToken(token);
 
-  const userService = new UserService();
-  if (!(await userService.isUserExists(payload.username))) {
-    return res.apiError("Unauthorized: token no longer valid", 403);
+    const userService = new UserService();
+    if (!(await userService.isUserExists(payload.username))) {
+      return res.apiError("Unauthorized: token no longer valid", 403);
+    }
+
+    req.authUser = payload;
+    next();
+  } catch (err: any) {
+    res.apiError(err.message, err.statusCode);
   }
-
-  req.authUser = payload;
-  next();
 }
