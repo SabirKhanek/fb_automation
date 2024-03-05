@@ -69,4 +69,15 @@ export class JobManagerService {
     if (reason) obj.failureReason = reason;
     return await Task.update(obj, { where: { taskId } });
   }
+
+  async getUserRunningJobs(username: string) {
+    try {
+      const obj = await JobModel.findAll({
+        include: [{ model: TaskModel, where: { ownerUid: username } }],
+      });
+      return obj;
+    } catch (err) {
+      throw new ErrorWithStatus("Error while getting running jobs", 500);
+    }
+  }
 }

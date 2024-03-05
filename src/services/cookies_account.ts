@@ -47,4 +47,12 @@ export class CookiesAccountsService {
       throw new ErrorWithStatus("Such cookie do not exist", 404);
     await cookieToUpdate.destroy({ force: true });
   }
+
+  async deleteAllUserCookies(user: string) {
+    try {
+      await CookiesAccounts.destroy({ where: { ownerUid: user }, force: true });
+    } catch (err) {
+      throw new ErrorWithStatus("Couldn't delete cookies", 500);
+    }
+  }
 }

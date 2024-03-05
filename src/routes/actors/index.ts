@@ -70,3 +70,14 @@ actorRouter.delete("/", authenticate, async (req, res) => {
     res.apiError(err.message, err.statusCode);
   }
 });
+
+actorRouter.delete("/deleteall", authenticate, async (req, res) => {
+  try {
+    if (!req.authUser) throw new Error();
+    const cookieService = new CookiesAccountsService();
+    await cookieService.deleteAllUserCookies(req.authUser.username);
+    return res.apiSuccess("deleted");
+  } catch (err: any) {
+    res.apiError(err.message, err.statusCode);
+  }
+});
