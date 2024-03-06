@@ -3,13 +3,14 @@ import * as cheerio from "cheerio";
 import { fetchMobilePage } from "./fetchPage";
 import { mobileAxios } from "../axios";
 import * as querystring from "querystring";
+import { writeFileSync } from "fs";
 
 export async function voteOnPoll(qid: string, oid: string, cookie: string) {
   const url = `https://m.facebook.com/questions.php?question_id=${qid}`;
   const page = await fetchMobilePage(url, cookie);
 
   const data = extractVoteData(page, oid, qid);
-
+  console.log(data);
   const result = await mobileAxios.post(
     "/a/questions/polls/vote.php",
     querystring.stringify(data),
@@ -21,8 +22,10 @@ export async function voteOnPoll(qid: string, oid: string, cookie: string) {
       },
     }
   );
-
-  // console.log(result.data);
+  if (result.data.includes("<title>Error</title>")) {
+    throw new ErrorWithStatus("Error while submitting the poll", 500);
+  }
+  
 }
 
 function extractVoteData(content: string, oid: string, qid: string) {
@@ -31,7 +34,6 @@ function extractVoteData(content: string, oid: string, qid: string) {
     const [_, fb_dtsg, jazoest] = content.match(
       /MPageLoadClientMetrics.init\("([^"]*)", "", "jazoest", "([^"]*)"/
     );
-
     const $ = cheerio.load(content);
     // @ts-ignore
     const voteMatch = $(`#${oid} .mPollVotes`).text().match(/\d+/);
@@ -59,6 +61,7 @@ function extractVoteData(content: string, oid: string, qid: string) {
       jazoest,
     };
   } catch (err: any) {
+    console.log(err);
     throw new ErrorWithStatus(`Error extracting required poll data`, 500);
   }
 }
