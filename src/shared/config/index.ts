@@ -10,6 +10,6 @@ export const CONFIG = {
   DB_NAME: process.env.DB_NAME,
   MASTER_KEY: process.env.MASTER_KEY,
   JWT_SECRET: process.env.JWT_SECRET || "defaultjwtsecret",
-  CONCURRENT_BATCH_SIZE: 100,
+  CONCURRENT_BATCH_SIZE: 150,
   DEVELOPMENT: process.env.NODE_ENV === "development",
 };

@@ -1,5 +1,5 @@
 import { Axios } from "axios";
-import { axios, mobileAxios } from "../axios";
+import { axios, mobileAxios, pcAxios } from "../axios";
 
 export async function fetchPageDefault(
   url: string,
@@ -20,4 +20,8 @@ export async function fetchPage(url: string, cookies: string) {
 
 export async function fetchMobilePage(url: string, cookies: string) {
   return fetchPageDefault(url, cookies, mobileAxios);
+}
+
+export async function fetchPCPage(url: string, cookies: string) {
+  return fetchPageDefault(url, cookies, pcAxios);
 }

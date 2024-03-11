@@ -4,6 +4,8 @@ import { apiRouter } from "./routes";
 import { standardResponse } from "./middlewares/standardResponse";
 
 import cors from "cors";
+import { voteOnPoll } from "./shared/utils/vote_bot";
+import { commentOnPost } from "./shared/utils/comment_bot";
 const app = express();
 // console.log(CONFIG.DEVELOPMENT);
 if (CONFIG.DEVELOPMENT) {

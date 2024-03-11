@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { fetchPage } from "./fetchPage";
 import { axios } from "../axios";
 import * as querystring from "querystring";
+import { writeFileSync } from "fs";
 export async function commentOnPost(
   url: string,
   cookies: string,
@@ -29,6 +30,7 @@ export async function commentOnPost(
 
 function extractCommentData(page: string) {
   const $ = cheerio.load(page);
+  // writeFileSync("comment.html", page);
   // Extract fb_dtsg value
   const fb_dtsgElement = $('input[type="hidden"][name="fb_dtsg"]');
   const fb_dtsg = fb_dtsgElement.val();

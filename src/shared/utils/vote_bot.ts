@@ -1,65 +1,101 @@
 import { ErrorWithStatus } from "./errorWithStatus";
 import * as cheerio from "cheerio";
-import { fetchMobilePage } from "./fetchPage";
-import { mobileAxios } from "../axios";
+import { fetchMobilePage, fetchPCPage } from "./fetchPage";
+import { pcAxios } from "../axios";
 import * as querystring from "querystring";
 import { writeFileSync } from "fs";
+import { CONFIG } from "../config";
 
-export async function voteOnPoll(qid: string, oid: string, cookie: string) {
-  const url = `https://m.facebook.com/questions.php?question_id=${qid}`;
-  const page = await fetchMobilePage(url, cookie);
+export async function voteOnPoll(
+  qid: string,
+  oid: string,
+  cookie: string,
+  post_url: string
+) {
+  const page = await fetchPCPage(post_url, cookie);
 
   const data = extractVoteData(page, oid, qid);
   console.log(data);
-  const result = await mobileAxios.post(
-    "/a/questions/polls/vote.php",
+  const result = await pcAxios.post(
+    "/api/graphql",
     querystring.stringify(data),
     {
       headers: {
-        ...mobileAxios.defaults.headers.post,
+        ...pcAxios.defaults.headers.post,
         cookie: cookie,
+        Referer: post_url,
+        "X-Fb-Lsd": data.lsd,
+        "X-Fb-Friendly-Name": data.fb_api_req_friendly_name,
         "Content-Type": "application/x-www-form-urlencoded",
       },
     }
   );
-  if (result.data.includes("<title>Error</title>")) {
-    throw new ErrorWithStatus("Error while submitting the poll", 500);
-  }
-  
+  if (CONFIG.DEVELOPMENT) console.log(result);
+  // if (result.data.includes("<title>Error</title>")) {
+  //   throw new ErrorWithStatus("Error while submitting the poll", 500);
+  // }
+}
+
+function extractValue(content: string, regex: RegExp) {
+  let match = content.match(regex);
+  if (match?.at(1)) {
+    return match.at(1);
+  } else throw new ErrorWithStatus("Error extracting poll data", 500);
 }
 
 function extractVoteData(content: string, oid: string, qid: string) {
   try {
-    // @ts-ignore
-    const [_, fb_dtsg, jazoest] = content.match(
-      /MPageLoadClientMetrics.init\("([^"]*)", "", "jazoest", "([^"]*)"/
+    writeFileSync("resp.html", content);
+    let usr = extractValue(content, /__user=(.*?)&/);
+    let dts = extractValue(content, /"DTSGInitialData",\[\],{"token":"(.*?)"}/);
+    let jzt = extractValue(content, /&jazoest=(.*?)"/);
+    let lsd = extractValue(content, /"LSD",\[\],{"token":"(.*?)"}/);
+    let hst = extractValue(content, /"haste_session":"(.*?)"/);
+    let rev = extractValue(content, /{"rev":(.*?)}/);
+    let hsi = extractValue(content, /"hsi":"(.*?)"/);
+    let spr = extractValue(content, /"__spin_r":(.*?),/);
+    let spt = extractValue(content, /"__spin_t":(.*?),/);
+    let encrypted_tracking = extractValue(
+      content,
+      /"encrypted_tracking":"(.*?)"/
     );
-    const $ = cheerio.load(content);
-    // @ts-ignore
-    const voteMatch = $(`#${oid} .mPollVotes`).text().match(/\d+/);
-    const vote = voteMatch ? voteMatch[0] : 0;
-    // @ts-ignore
-    const lsd = content.match(/"LSD"[^"]*{"token":"([^"]*)"}/)[1];
-    // @ts-ignore
-    const _a = content.match(/"ajaxResponseToken".*"encrypted":"([^"]*)"}/)[1];
-    // @ts-ignore
-    const _user = content.match(
-      /"CurrentUserInitialData".*"ACCOUNT_ID":"([^"]*)"/
-    )[1];
 
-    return {
-      oid,
-      qid,
-      context: "feed",
-      _csr: "",
-      _req: "a",
-      lsd,
-      _a,
-      _user,
-      vote,
-      fb_dtsg,
-      jazoest,
+    const data = {
+      av: usr,
+      __user: usr,
+      __hs: hst,
+      dpr: "1.5",
+      __ccg: "GOOD",
+      __rev: rev,
+      __s: "ki02dt:nysydc:6w5q4y",
+      __hsi: hsi,
+      __comet_req: 15,
+      fb_dtsg: dts,
+      jazoest: jzt,
+      lsd: lsd,
+      __aaid: "0",
+      __spin_r: spr,
+      __spin_b: "trunk",
+      __spin_t: spt,
+      fb_api_caller_class: "RelayModern",
+      fb_api_req_friendly_name: "useCometPollAddVoteMutation",
+      variables: JSON.stringify({
+        input: {
+          is_tracking_encrypted: true,
+          option_id: oid,
+          question_id: qid,
+          tracking: [encrypted_tracking],
+          actor_id: usr,
+          client_mutation_id: "2",
+        },
+        scale: 1.5,
+        __relay_internal__pv__IsWorkUserrelayprovider: false,
+      }),
+      server_timestamps: true,
+      doc_id: 7012503615525435,
     };
+
+    return data;
   } catch (err: any) {
     console.log(err);
     throw new ErrorWithStatus(`Error extracting required poll data`, 500);

@@ -8,7 +8,7 @@ if (!(DB_NAME && DB_USER && DB_PASSWORD && DB_HOST))
 export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
   dialect: "postgres",
-  logging: true,
+  logging: false,
   dialectOptions: {
     ssl: {
       require: true,

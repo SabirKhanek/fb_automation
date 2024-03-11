@@ -25,9 +25,10 @@ const commentOperationFunction = async (
 const voteOperationFunction = async (
   operation: Operation,
   qid: string,
-  oid: string
+  oid: string,
+  post_url: string
 ) => {
-  await voteOnPoll(qid, oid, operation.account.cookies);
+  await voteOnPoll(qid, oid, operation.account.cookies, post_url);
 };
 
 // Define common schemas for commenting and voting
@@ -41,6 +42,7 @@ const commentSchema = Joi.object({
 const voteSchema = Joi.object({
   question_id: Joi.string().required(),
   option_id: Joi.string().required(),
+  post_url: Joi.string().required(),
 });
 
 const performAutoOperation = async (
@@ -119,7 +121,7 @@ toolsRouter.post(
       voteSchema,
       "Auto Voter",
       voteOperationFunction,
-      [req.body.question_id, req.body.option_id]
+      [req.body.question_id, req.body.option_id, req.body.post_url]
     );
   }
 );
