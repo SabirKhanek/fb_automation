@@ -121,4 +121,4 @@ export const PC_HEADERS = {
 
 export const BASIC_BASE_URL = "https://mbasic.facebook.com";
 export const MOBILE_BASE_URL = "https://m.facebook.com";
-export const PC_BASE_URL = "https://web.facebook.com";
+export const PC_BASE_URL = "https://www.facebook.com";
