@@ -21,10 +21,14 @@ actorRouter.get("/getall", authenticate, async (req, res) => {
 actorRouter.post(
   "/cookiesPayload",
   authenticate,
-  multer().none(),
+  multer({ limits: { fieldSize: 10 * 1024 * 1024 } }).none(),
   async (req, res) => {
     try {
-      const data = JSON.parse(req.body.data);
+      const parsedData = JSON.parse(req.body.data);
+      let data = parsedData;
+      try {
+        data = { cookies: data?.cookies?.filter((d: string) => d.length > 0) };
+      } catch (err) {}
       const { value, error } = actorsSchema.validate(data);
       if (error) return res.apiError(error.details[0].message, 400);
       if (!req.authUser) throw new Error();

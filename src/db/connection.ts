@@ -1,20 +1,22 @@
 import { Sequelize } from "sequelize";
 import { CONFIG } from "../shared/config";
+import { existsSync, mkdirSync } from "fs";
+import path from "path";
 
 const { DB_HOST, DB_NAME, DB_PASSWORD, DB_USER } = CONFIG;
 if (!(DB_NAME && DB_USER && DB_PASSWORD && DB_HOST))
   throw new Error("DB Config is required");
 
+if (!existsSync(CONFIG.STORAGE)) {
+  mkdirSync(CONFIG.STORAGE, { recursive: true });
+}
+
+const storagePath = path.join(CONFIG.STORAGE, "db.sqlite");
+
 export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  host: DB_HOST,
-  dialect: "postgres",
+  storage: storagePath,
+  dialect: "sqlite",
   logging: false,
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false, // You might need to adjust this based on your SSL configuration
-    },
-  },
   sync: { alter: true },
 });
 

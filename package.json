@@ -34,7 +34,8 @@
     "pg-hstore": "^2.3.4",
     "querystring": "^0.2.1",
     "sequelize": "^6.37.1",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

@@ -12,4 +12,5 @@ export const CONFIG = {
   JWT_SECRET: process.env.JWT_SECRET || "defaultjwtsecret",
   CONCURRENT_BATCH_SIZE: 150,
   DEVELOPMENT: process.env.NODE_ENV === "development",
+  STORAGE: process.env.SQLITE_STORAGE || "./storage/db",
 };
